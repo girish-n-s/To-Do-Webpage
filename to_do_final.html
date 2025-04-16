@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enhanced To-Do List</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --primary-color: #5271ff;
+      --secondary-color: #6d83ff;
+      --dark-color: #1e293b;
+      --light-color: #f8fafc;
+      --success-color: #10b981;
+      --accent-color: #8b5cf6;
+      --delete-color: #ef4444;
+      --card-bg: rgba(255, 255, 255, 0.15);
+      --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #4f46e5, #7e22ce);
+      color: white;
+      background-image: url('to-do_bg.jpg');
+      background-size: cover;
+      min-height: 100vh;
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .glassmorphism {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: var(--card-shadow);
+    }
+    
+    .app-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      animation: fadeInDown 1s ease;
+    }
+    
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #fff, #d8b4fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+    }
+    
+    .categories {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      animation: fadeInUp 1s ease 0.2s both;
+    }
+    
+    .category {
+      background: var(--card-bg);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .category::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+    
+    .category:hover::before {
+      opacity: 0.5;
+    }
+    
+    .category:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 14px rgba(0, 0, 0, 0.2);
+    }
+    
+    .category.active {
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+      box-shadow: 0 5px 15px rgba(82, 113, 255, 0.4);
+      transform: translateY(-3px);
+    }
+    
+    .category.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5px;
+      height: 5px;
+      background-color: white;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    }
+    
+    .task-input {
+      display: flex;
+      justify-content: center;
+      margin: 2rem 0;
+      animation: fadeIn 1s ease 0.4s both;
+    }
+    
+    #taskInput {
+      width: 70%;
+      max-width: 500px;
+      padding: 1rem 1.5rem;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      background: var(--card-bg);
+      color: white;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+    }
+    
+    #taskInput::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    #taskInput:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+    }
+    
+    #addTask {
+      margin-left: 1rem;
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(82, 113, 255, 0.4);
+    }
+    
+    #addTask:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(82, 113, 255, 0.6);
+    }
+    
+    #addTask:active {
+      transform: translateY(-1px);
+    }
+    
+    .tasks-container {
+      animation: fadeIn 1s ease 0.6s both;
+    }
+    
+    .tasks-section {
+      display: none;
+      opacity: 0;
+      gap: 2rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 0.6s ease, max-height 0.6s ease;
+    }
+    
+    .tasks-section.active {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 1;
+      max-height: 2000px;
+    }
+    
+    .task-list, .completed-list {
+      width: 100%;
+      max-width: 500px;
+      padding: 1.5rem;
+      border-radius: 20px;
+      min-height: 200px;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--card-shadow);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .task-list:hover, .completed-list:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .task-list h3, .completed-list h3 {
+      text-align: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    ul {
+      list-style-type: none;
+    }
+    
+    li {
+      background: rgba(255, 255, 255, 0.07);
+      margin: 0.75rem 0;
+      padding: 1rem;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: grab;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: slideInRight 0.5s ease forwards;
+      transform-origin: center;
+    }
+    
+    li:active {
+      cursor: grabbing;
+    }
+    
+    li:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateX(3px);
+    }
+    
+    li.dragging {
+      opacity: 0.7;
+      transform: scale(1.05) rotate(1deg);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+    }
+    
+    li div {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+    }
+    
+    li input[type='checkbox'] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      margin-right: 12px;
+      position: relative;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    li input[type='checkbox']:checked {
+      background: var(--success-color);
+      border-color: var(--success-color);
+    }
+    
+    li input[type='checkbox']:checked::after {
+      content: '✓';
+      position: absolute;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: bold;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    li span {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1rem;
+      word-break: break-word;
+      flex-grow: 1;
+      transition: all 0.3s ease;
+    }
+    
+    li button.complete {
+      background: var(--success-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      margin-left: 10px;
+      opacity: 0;
+      transform: translateX(10px);
+    }
+    
+    li:hover button.complete {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    li button.complete:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 10px rgba(16, 185, 129, 0.3);
+    }
+    
+    #deleteSection {
+      text-align: center;
+      margin-top: 2rem;
+      animation: fadeIn 1s ease 0.8s both;
+    }
+    
+    #deleteSelected {
+      background: rgba(239, 68, 68, 0.2);
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    #deleteSelected:hover {
+      background: var(--delete-color);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+    
+    .empty-msg {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 2rem;
+      font-style: italic;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    /* Animation Keyframes */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .task-complete {
+      animation: slideOutRight 0.5s ease forwards;
+    }
+    
+    @keyframes slideOutRight {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+      
+      h2 {
+        font-size: 1.2rem;
+      }
+      
+      .tasks-section.active {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .task-list, .completed-list {
+        width: 90%;
+      }
+      
+      .task-input {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      #taskInput {
+        width: 90%;
+        margin-bottom: 1rem;
+      }
+      
+      #addTask {
+        margin-left: 0;
+      }
+    }
+    
+    /* Added animations for task interactions */
+    .task-added {
+      animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    /* Floating particles background animation */
+    .particles-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="particles-container" id="particles"></div>
+  
+  <div class="container">
+    <div class="app-header">
+      <h1>Task Flow</h1>
+      <h2>Organize your day with ease</h2>
+    </div>
+    
+    <div class="categories">
+      <button class="category active" data-category="work">Work</button>
+      <button class="category" data-category="personal">Personal</button>
+      <button class="category" data-category="workout">Fitness</button>
+      <button class="category" data-category="travel">Travel</button>
+    </div>
+    
+    <div class="task-input glassmorphism">
+      <input type="text" id="taskInput" placeholder="What needs to be done?" />
+      <button id="addTask">Add Task</button>
+    </div>
+    
+    <div class="tasks-container">
+      <div id="work" class="tasks-section active">
+        <div class="task-list glassmorphism">
+          <h3>Tasks</h3>
+          <ul></ul>
+        </div>
+        <div class="completed-list glassmorphism">
+          <h3>Completed</h3>
+          <ul></ul>
+        </div>
+      </div>
+      
+      <div id="personal" class="tasks-section">
+        <div class="task-list glassmorphism">
+          <h3>Tasks</h3>
+          <ul></ul>
+        </div>
+        <div class="completed-list glassmorphism">
+          <h3>Completed</h3>
+          <ul></ul>
+        </div>
+      </div>
+      
+      <div id="workout" class="tasks-section">
+        <div class="task-list glassmorphism">
+          <h3>Tasks</h3>
+          <ul></ul>
+        </div>
+        <div class="completed-list glassmorphism">
+          <h3>Completed</h3>
+          <ul></ul>
+        </div>
+      </div>
+      
+      <div id="travel" class="tasks-section">
+        <div class="task-list glassmorphism">
+          <h3>Tasks</h3>
+          <ul></ul>
+        </div>
+        <div class="completed-list glassmorphism">
+          <h3>Completed</h3>
+          <ul></ul>
+        </div>
+      </div>
+    </div>
+    
+    <div id="deleteSection">
+      <button id="deleteSelected">Delete Selected</button>
+    </div>
+  </div>
+  
+  <audio id="clickSound" src="click.mp3" preload="auto"></audio>
+  
+  <script>
+    // Create floating particles for background
+    function createParticles() {
+      const container = document.getElementById('particles');
+      const particleCount = 30;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        // Random properties
+        const size = Math.random() * 5 + 2;
+        const posX = Math.random() * 100;
+        const posY = Math.random() * 100;
+        const opacity = Math.random() * 0.5 + 0.1;
+        const animDuration = Math.random() * 60 + 30;
+        const animDelay = Math.random() * 10;
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${posX}%`;
+        particle.style.top = `${posY}%`;
+        particle.style.opacity = opacity;
+        particle.style.animation = `float ${animDuration}s infinite linear ${animDelay}s`;
+        
+        container.appendChild(particle);
+      }
+    }
+    
+    // Floating animation
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+      @keyframes float {
+        0% {
+          transform: translate(0, 0) rotate(0deg);
+          opacity: 0.1;
+        }
+        25% {
+          transform: translate(30px, -50px) rotate(90deg);
+          opacity: 0.3;
+        }
+        50% {
+          transform: translate(60px, 0) rotate(180deg);
+          opacity: 0.5;
+        }
+        75% {
+          transform: translate(30px, 50px) rotate(270deg);
+          opacity: 0.3;
+        }
+        100% {
+          transform: translate(0, 0) rotate(360deg);
+          opacity: 0.1;
+        }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+    
+    // Main functionality
+    const categoryButtons = document.querySelectorAll('.category');
+    const sections = document.querySelectorAll('.tasks-section');
+    const taskInput = document.getElementById('taskInput');
+    const addTaskButton = document.getElementById('addTask');
+    const deleteButton = document.getElementById('deleteSelected');
+    const clickSound = document.getElementById('clickSound');
+    
+    let currentCategory = 'work';
+    
+    // Initialize particles
+    createParticles();
+    
+    // Add ripple effect to buttons
+    function createRipple(event) {
+      const button = event.currentTarget;
+      
+      const circle = document.createElement('span');
+      const diameter = Math.max(button.clientWidth, button.clientHeight);
+      const radius = diameter / 2;
+      
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+      circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
+      circle.classList.add('ripple');
+      
+      const ripple = button.getElementsByClassName('ripple')[0];
+      
+      if (ripple) {
+        ripple.remove();
+      }
+      
+      button.appendChild(circle);
+    }
+    
+    // Add ripple style
+    const rippleStyle = document.createElement('style');
+    rippleStyle.textContent = `
+      .ripple {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+      }
+      
+      @keyframes ripple {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+      
+      .category, #addTask, #deleteSelected {
+        position: relative;
+        overflow: hidden;
+      }
+    `;
+    document.head.appendChild(rippleStyle);
+    
+    // Add ripple to buttons
+    document.querySelectorAll('.category, #addTask, #deleteSelected').forEach(button => {
+      button.addEventListener('click', createRipple);
+    });
+    
+    categoryButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Play sound with reduced volume
+        clickSound.volume = 0.3;
+        clickSound.currentTime = 0;
+        clickSound.play().catch(e => console.log('Sound play error:', e));
+        
+        const activeButton = document.querySelector('.category.active');
+        activeButton.classList.remove('active');
+        btn.classList.add('active');
+        
+        const oldCategory = currentCategory;
+        currentCategory = btn.dataset.category;
+        
+        const oldSection = document.getElementById(oldCategory);
+        const newSection = document.getElementById(currentCategory);
+        
+        // Smooth transition between sections
+        oldSection.style.opacity = '0';
+        setTimeout(() => {
+          oldSection.classList.remove('active');
+          newSection.classList.add('active');
+          
+          // Trigger reflow for animation
+          void newSection.offsetWidth;
+          
+          newSection.style.opacity = '1';
+        }, 300);
+        
+        updateCompleteButton();
+        updateEmptyMessage();
+      });
+    });
+    
+    addTaskButton.addEventListener('click', addNewTask);
+    
+    taskInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        addNewTask();
+      }
+    });
+    
+    function addNewTask() {
+      const text = taskInput.value.trim();
+      if (text === '') return;
+      
+      const taskList = document.querySelector(`#${currentCategory} .task-list ul`);
+      const li = createTaskElement(text);
+      taskList.appendChild(li);
+      
+      // Add entrance animation
+      li.classList.add('task-added');
+      
+      // Play add sound
+      clickSound.volume = 0.3;
+      clickSound.currentTime = 0;
+      clickSound.play().catch(e => console.log('Sound play error:', e));
+      
+      // Clear input and focus
+      taskInput.value = '';
+      taskInput.focus();
+      
+      updateCompleteButton();
+      updateEmptyMessage();
+    }
+    
+    deleteButton.addEventListener('click', () => {
+      const tasks = document.querySelectorAll(`#${currentCategory} .task-list li`);
+      
+      tasks.forEach(task => {
+        const checkbox = task.querySelector("input[type='checkbox']");
+        if (checkbox && checkbox.checked) {
+          // Add exit animation before removal
+          task.style.animation = 'fadeOut 0.3s ease forwards';
+          
+          setTimeout(() => {
+            task.remove();
+            updateCompleteButton();
+            updateEmptyMessage();
+          }, 300);
+        }
+      });
+      
+      // Play delete sound
+      clickSound.volume = 0.3;
+      clickSound.currentTime = 0;
+      clickSound.play().catch(e => console.log('Sound play error:', e));
+    });
+    
+    function createTaskElement(text) {
+      const li = document.createElement('li');
+      li.setAttribute('draggable', 'true');
+      
+      li.innerHTML = `
+        <div>
+          <input type="checkbox" />
+          <span>${text}</span>
+        </div>
+        <button class="complete">Complete</button>
+      `;
+      
+      // Setup drag events
+      li.addEventListener('dragstart', () => {
+        li.classList.add('dragging');
+      });
+      
+      li.addEventListener('dragend', () => {
+        li.classList.remove('dragging');
+        updateCompleteButton();
+      });
+      
+      // Complete button functionality
+      li.querySelector('.complete').addEventListener('click', () => {
+        const completedList = document.querySelector(`#${currentCategory} .completed-list ul`);
+        
+        // Add exit animation
+        li.classList.add('task-complete');
+        
+        setTimeout(() => {
+          li.classList.remove('task-complete');
+          completedList.appendChild(li);
+          li.querySelector('.complete').remove();
+          
+          const checkbox = li.querySelector("input[type='checkbox']");
+          if (checkbox) checkbox.remove();
+          
+          // Add entrance animation in completed list
+          li.classList.add('task-added');
+          
+          // Play complete sound
+          clickSound.volume = 0.3;
+          clickSound.currentTime = 0;
+          clickSound.play().catch(e => console.log('Sound play error:', e));
+          
+          updateCompleteButton();
+          updateEmptyMessage();
+        }, 500);
+      });
+      
+      return li;
+    }
+    
+    function updateCompleteButton() {
+      const allTasks = document.querySelectorAll(`#${currentCategory} .task-list li`);
+      
+      allTasks.forEach((li, index) => {
+        const completeBtn = li.querySelector('.complete');
+        if (completeBtn) {
+          completeBtn.style.display = index === 0 ? 'inline-block' : 'none';
+        }
+      });
+    }
+    
+    function updateEmptyMessage() {
+      sections.forEach(section => {
+        const taskList = section.querySelector('.task-list ul');
+        let msg = section.querySelector('.empty-msg');
+        
+        if (!msg) {
+          msg = document.createElement('div');
+          msg.className = 'empty-msg';
+          section.querySelector('.task-list').appendChild(msg);
+        }
+        
+        if (taskList.children.length === 0) {
+          msg.textContent = 'You are all caught up! Take a break 😊';
+          msg.style.display = 'block';
+        } else {
+          msg.style.display = 'none';
+        }
+      });
+    }
+    
+    // Drag and drop reordering
+    sections.forEach(section => {
+      const list = section.querySelector('.task-list ul');
+      
+      list.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging');
+        if (!dragging) return;
+        
+        const afterElement = getDragAfterElement(list, e.clientY);
+        if (afterElement == null) {
+          list.appendChild(dragging);
+        } else {
+          list.insertBefore(dragging, afterElement);
+        }
+      });
+    });
+    
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
+      
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+    
+    // Add fade out animation
+    const fadeOutStyle = document.createElement('style');
+    fadeOutStyle.textContent = `
+      @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+      }
+    `;
+    document.head.appendChild(fadeOutStyle);
+    
+    // Initialize
+    updateCompleteButton();
+    updateEmptyMessage();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Add new task with Alt+N
+      if (e.altKey && e.key === 'n') {
+        e.preventDefault();
+        taskInput.focus();
+      }
+      
+      // Delete selected with Alt+D
+      if (e.altKey && e.key === 'd') {
+        e.preventDefault();
+        deleteButton.click();
+      }
+      
+      // Quick category switching with Alt+1, Alt+2, etc.
+      if (e.altKey && e.key >= '1' && e.key <= '4') {
+        e.preventDefault();
+        const index = parseInt(e.key) - 1;
+        if (categoryButtons[index]) {
+          categoryButtons[index].click();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
